@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header>
+        <h1 class="logo">🛒 ShopEasy</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="products.html">Products</a>
+        </nav>
+    </header>
+
+    <!-- Main -->
+    <main>
+        <h2 class="section-title">Your Cart</h2>
+        <div id="cart-list" class="product-grid"></div>
+    </main>
+
+   <script>
+    function getCart() {
+        return JSON.parse(localStorage.getItem("cart")) || [];
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
+    function loadCart() {
+        const items = getCart();
+        renderCart(items);
+    }
+
+    function renderCart(items) {
+        const container = document.getElementById('cart-list');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+            container.innerHTML = "<p class='empty'>Your cart is empty 🛒</p>";
+            return;
+        }
+
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('product-card');
+
+            div.innerHTML = `
+                <h3>${item.name}</h3>
+                <p class="price">₹${item.price}</p>
+                <button class="remove-btn" onclick="removeFromCart(${item.id})">
+                    Remove
+                </button>
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+    function removeFromCart(productId) {
+        let cart = getCart();
+
+        // remove item
+        cart = cart.filter(item => item.id !== productId);
+
+        saveCart(cart);
+
+        loadCart(); // refresh UI
+    }
+
+    loadCart();
+</script>
+
+</body>
+</html>

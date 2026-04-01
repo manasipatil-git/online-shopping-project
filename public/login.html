@@ -1,30 +1,78 @@
-<h2>Login</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ShopEasy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<input id="email" placeholder="Email">
-<input id="password" placeholder="Password" type="password">
-<button onclick="login()">Login</button>
+    <!-- Navbar -->
+    <header>
+        <h1 class="logo">🛒 ShopEasy</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="register.html">Register</a>
+        </nav>
+    </header>
 
-<script>
-async function login() {
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      email: document.getElementById('email').value,
-      password: document.getElementById('password').value
-    })
-  });
+    <!-- Login Container -->
+    <main class="center-container">
+        <div class="form-card">
+            <h2>Login</h2>
 
-  const data = await res.json();
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="Enter your email" required>
+                <input type="password" id="password" placeholder="Enter your password" required>
 
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-    alert('Logged in!');
-    
-    // 🔥 ADD THIS LINE
-    window.location.href = '/index.html';
-  } else {
-    alert('Login failed');
-  }
-}
-</script>
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="form-footer">
+                Don't have an account? <a href="register.html">Register</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "user";
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email }));
+                    alert("Login successful!");
+                    window.location.href = "index.html";
+                } else {
+                    alert(data.message || "Login failed");
+                }
+
+            } catch (err) {
+                // ✅ Dummy login fallback
+                if (email === "test@test.com" && password === "1234") {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email }));
+                    alert("Logged in (dummy mode)");
+                    window.location.href = "index.html";
+                } else {
+                    alert("Invalid credentials");
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

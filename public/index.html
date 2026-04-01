@@ -1,14 +1,106 @@
-<script>
-// Redirect if not logged in
-if (!localStorage.getItem('token')) {
-  window.location.href = '/login.html';
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Shopping</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-// Logout
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = '/login.html';
-}
+    <!-- Navbar -->
+    <header>
+        <h1 class="logo">🛒 ShopEasy</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="cart.html">Cart</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <h2 class="section-title">Products</h2>
+        <div id="product-list" class="product-grid"></div>
+    </main>
+
+  <script>
+    const STORAGE_KEY = "cart";
+
+    const dummyProducts = [
+        { id: 1, name: "Wireless Mouse", price: 599 },
+        { id: 2, name: "Bluetooth Headphones", price: 1499 },
+        { id: 3, name: "Gaming Keyboard", price: 2499 },
+        { id: 4, name: "Smart Watch", price: 1999 },
+        { id: 5, name: "USB-C Charger", price: 799 },
+        { id: 6, name: "Laptop Stand", price: 999 },
+        { id: 7, name: "Phone Case", price: 299 },
+        { id: 8, name: "Power Bank", price: 1299 }
+    ];
+
+    async function loadProducts() {
+        let products = [];
+
+        try {
+            const res = await fetch('/products');
+            if (!res.ok) throw new Error();
+
+            products = await res.json();
+        } catch (err) {
+            console.warn("Using dummy products...");
+            products = dummyProducts;
+        }
+
+        renderProducts(products);
+    }
+
+    function renderProducts(products) {
+        const container = document.getElementById('product-list');
+        container.innerHTML = '';
+
+        products.forEach(product => {
+            const div = document.createElement('div');
+            div.classList.add('product-card');
+
+            div.innerHTML = `
+                <h3>${product.name}</h3>
+                <p class="price">₹${product.price}</p>
+                <button onclick="addToCart(${product.id})">
+                    Add to Cart
+                </button>
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+    // ✅ FIXED FUNCTION
+    function addToCart(productId) {
+        const product = dummyProducts.find(p => p.id === productId);
+
+        if (!product) {
+            alert("Product not found");
+            return;
+        }
+
+        let cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        // ❌ Prevent duplicates
+        const exists = cart.some(item => item.id === productId);
+
+        if (exists) {
+            alert("Already in cart");
+            return;
+        }
+
+        cart.push(product);
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+
+        alert("🛒 Added to cart");
+    }
+
+    loadProducts();
 </script>
-
-<button onclick="logout()">Logout</button>
+</body>
+</html>

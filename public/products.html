@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Products</h1>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="index.html">Home</a> |
+        <a href="cart.html">Cart</a> |
+        <a href="login.html">Logout</a>
+    </nav>
+
+    <hr>
+
+    <!-- Product List -->
+    <div id="product-list"></div>
+
+    <script>
+        // Load products from backend
+        async function loadProducts() {
+            try {
+                const res = await fetch('/products');
+                const products = await res.json();
+
+                const container = document.getElementById('product-list');
+                container.innerHTML = '';
+
+                products.forEach(product => {
+                    const div = document.createElement('div');
+
+                    div.style.border = "1px solid black";
+                    div.style.margin = "10px";
+                    div.style.padding = "10px";
+
+                    div.innerHTML = `
+                        <h3>${product.name}</h3>
+                        <p>Price: ₹${product.price}</p>
+                        <button onclick="addToCart(${product.id})">
+                            Add to Cart
+                        </button>
+                    `;
+
+                    container.appendChild(div);
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading products");
+            }
+        }
+
+        // Add to cart
+        async function addToCart(productId) {
+            try {
+                const res = await fetch('/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ productId })
+                });
+
+                const data = await res.json();
+                alert(data.message);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error adding to cart");
+            }
+        }
+
+        // Load products when page opens
+        loadProducts();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ShopEasy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header>
+        <h1 class="logo">🛒 ShopEasy</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="login.html">Login</a>
+        </nav>
+    </header>
+
+    <!-- Register Container -->
+    <main class="center-container">
+        <div class="form-card">
+            <h2>Create Account</h2>
+
+            <form id="registerForm">
+                <input type="text" id="name" placeholder="Full Name" required>
+                <input type="email" id="email" placeholder="Email Address" required>
+                <input type="password" id="password" placeholder="Password" required>
+
+                <button type="submit">Register</button>
+            </form>
+
+            <p class="form-footer">
+                Already have an account? <a href="login.html">Login</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        const USERS_KEY = "users";
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Basic validation
+            if (password.length < 4) {
+                alert("Password must be at least 4 characters");
+                return;
+            }
+
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("Registration successful!");
+                    window.location.href = "login.html";
+                    return;
+                } else {
+                    alert(data.message || "Registration failed");
+                }
+
+            } catch (err) {
+                // ✅ Dummy registration (localStorage)
+                let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+
+                const exists = users.some(user => user.email === email);
+
+                if (exists) {
+                    alert("User already exists");
+                    return;
+                }
+
+                users.push({ name, email, password });
+
+                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+                alert("Registered successfully (dummy mode)");
+                window.location.href = "login.html";
+            }
+        });
+    </script>
+
+</body>
+</html>
