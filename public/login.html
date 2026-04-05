@@ -3,102 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – ShopEasy</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Login – ShopEasy ⚡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{--neon:#c8f73a;--hot:#ff3cac;--ink:#0a0a0a;--card:#111115;--surface:#18181d;--muted:#8888a0;--border:rgba(255,255,255,.07);--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--ink);color:#fff;font-family:var(--fb);min-height:100vh;}
+        header{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:60px;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+        .logo{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--neon);letter-spacing:-1px;}
+        nav a{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:14px;font-weight:500;transition:.2s;}
+        nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+        .center{display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 60px);padding:24px;}
+        .form-card{background:var(--card);padding:40px 36px;width:100%;max-width:420px;border-radius:24px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(0,0,0,.5);}
+        .form-card h2{font-family:var(--fd);font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px;}
+        .form-sub{font-size:14px;color:var(--muted);margin-bottom:28px;}
+        .form-group{margin-bottom:16px;}
+        .form-label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;}
+        .form-input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;outline:none;transition:.2s;background:var(--surface);color:#fff;font-family:var(--fb);}
+        .form-input::placeholder{color:var(--muted);}
+        .form-input:focus{border-color:var(--neon);background:rgba(200,247,58,.03);}
+        .form-input.error{border-color:var(--hot);}
+        .form-err{font-size:12px;color:var(--hot);margin-top:4px;display:none;}
+        .api-err{background:rgba(255,60,172,.1);border:1px solid rgba(255,60,172,.25);color:var(--hot);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none;}
+        .submit-btn{width:100%;padding:14px;background:var(--neon);color:var(--ink);border:none;border-radius:12px;font-family:var(--fd);font-size:15px;font-weight:800;cursor:pointer;transition:.2s;margin-top:4px;}
+        .submit-btn:hover{background:#d8ff4a;}
+        .submit-btn:disabled{background:var(--surface);color:var(--muted);cursor:not-allowed;}
+        .form-footer{text-align:center;margin-top:20px;font-size:14px;color:var(--muted);}
+        .form-footer a{color:var(--neon);text-decoration:none;font-weight:700;}
+    </style>
 </head>
 <body>
-
-    <header>
-        <h1 class="logo">🛒 ShopEasy</h1>
-        <nav>
-            <a href="index.html">Home</a>
-        </nav>
-    </header>
-
-    <div class="center-container">
-        <div class="form-card">
-            <h2>Welcome back</h2>
-            <p class="form-subtitle">Sign in to your account</p>
-
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input id="email" class="form-input" type="email" placeholder="you@example.com" />
-                <div class="form-error-msg" id="email-err">Please enter a valid email.</div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <input id="password" class="form-input" type="password" placeholder="••••••••" />
-                <div class="form-error-msg" id="pw-err">Password is required.</div>
-            </div>
-
-            <div class="form-error-msg" id="api-err"
-                 style="margin-bottom:12px; font-size:13px; background:#fee2e2;
-                        padding:10px 14px; border-radius:8px; color:#991b1b;">
-            </div>
-
-            <button id="login-btn" onclick="login()">Sign in</button>
-
-            <div class="form-footer">
-                No account? <a href="register.html">Create one</a>
-            </div>
+<header><span class="logo">⚡ ShopEasy</span><nav><a href="index.html">Home</a></nav></header>
+<div class="center">
+    <div class="form-card">
+        <h2>Welcome back</h2>
+        <p class="form-sub">Sign in to your account</p>
+        <div class="api-err" id="api-err"></div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input id="email" class="form-input" type="email" placeholder="you@example.com" autocomplete="email">
+            <div class="form-err" id="email-err">Please enter a valid email.</div>
         </div>
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <input id="password" class="form-input" type="password" placeholder="••••••••" autocomplete="current-password">
+            <div class="form-err" id="pw-err">Password is required.</div>
+        </div>
+        <button id="login-btn" class="submit-btn" onclick="login()">Sign in</button>
+        <div class="form-footer">No account? <a href="register.html">Create one</a></div>
     </div>
-
-    <script>
-        async function login() {
-            const email = document.getElementById('email').value.trim();
-            const pw    = document.getElementById('password').value;
-
-            // clear previous errors
-            document.querySelectorAll('.form-error-msg').forEach(e => e.style.display = 'none');
-            document.querySelectorAll('.form-input').forEach(e => e.classList.remove('error'));
-
-            let valid = true;
-            if (!email || !/\S+@\S+\.\S+/.test(email)) {
-                document.getElementById('email').classList.add('error');
-                document.getElementById('email-err').style.display = 'block';
-                valid = false;
-            }
-            if (!pw) {
-                document.getElementById('password').classList.add('error');
-                document.getElementById('pw-err').style.display = 'block';
-                valid = false;
-            }
-            if (!valid) return;
-
-            const btn = document.getElementById('login-btn');
-            btn.textContent = 'Signing in…';
-            btn.disabled = true;
-
-            try {
-                const res  = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password: pw })
-                });
-                const data = await res.json();
-
-                if (data.token) {
-                    localStorage.setItem('token', data.token);
-                    window.location.href = '/index.html';
-                } else {
-                    const err = document.getElementById('api-err');
-                    err.textContent = 'Invalid credentials. Please try again.';
-                    err.style.display = 'block';
-                }
-            } catch {
-                const err = document.getElementById('api-err');
-                err.textContent = 'Could not connect. Please try again.';
-                err.style.display = 'block';
-            }
-
-            btn.textContent = 'Sign in';
-            btn.disabled = false;
-        }
-
-        document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
-    </script>
-
+</div>
+<script>
+async function login() {
+    const email = document.getElementById('email').value.trim();
+    const pw    = document.getElementById('password').value;
+    document.querySelectorAll('.form-err').forEach(e=>e.style.display='none');
+    document.querySelectorAll('.form-input').forEach(e=>e.classList.remove('error'));
+    document.getElementById('api-err').style.display='none';
+    let valid=true;
+    if(!email||!/\S+@\S+\.\S+/.test(email)){ document.getElementById('email').classList.add('error'); document.getElementById('email-err').style.display='block'; valid=false; }
+    if(!pw){ document.getElementById('password').classList.add('error'); document.getElementById('pw-err').style.display='block'; valid=false; }
+    if(!valid) return;
+    const btn=document.getElementById('login-btn');
+    btn.textContent='Signing in…'; btn.disabled=true;
+    try {
+        const res  = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+        const data = await res.json();
+        if(data.token){ localStorage.setItem('token',data.token); window.location.href='/index.html'; }
+        else { const err=document.getElementById('api-err'); err.textContent='Invalid credentials. Please try again.'; err.style.display='block'; }
+    } catch { const err=document.getElementById('api-err'); err.textContent='Could not connect. Please try again.'; err.style.display='block'; }
+    btn.textContent='Sign in'; btn.disabled=false;
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+</script>
 </body>
 </html>

@@ -3,217 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders – ShopEasy</title>
-    <link rel="stylesheet" href="style.css">
+    <title>My Orders – ShopEasy ⚡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{--neon:#c8f73a;--hot:#ff3cac;--ink:#0a0a0a;--card:#111115;--surface:#18181d;--muted:#8888a0;--border:rgba(255,255,255,.07);--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--ink);color:#fff;font-family:var(--fb);min-height:100vh;}
+        header{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:60px;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;}
+        .logo{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--neon);letter-spacing:-1px;}
+        nav{display:flex;align-items:center;gap:4px;}
+        nav a{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:14px;font-weight:500;transition:.2s;}
+        nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+        nav a.active{color:var(--neon);}
+        main{max-width:800px;margin:0 auto;padding:40px 32px;}
+        .page-title{font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:28px;}
+
+        .order-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px 24px;margin-bottom:14px;transition:border-color .2s;}
+        .order-card:hover{border-color:rgba(200,247,58,.15);}
+        .order-head{display:flex;justify-content:space-between;align-items:flex-start;}
+        .order-id{font-size:12px;color:var(--muted);margin-bottom:4px;}
+        .order-products{font-size:14px;color:#fff;font-weight:500;margin-bottom:4px;}
+        .order-date{font-size:12px;color:var(--muted);}
+        .order-right{text-align:right;}
+        .order-amount{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--neon);margin-bottom:8px;}
+        .status-badge{display:inline-block;font-size:11px;font-weight:700;padding:4px 12px;border-radius:100px;text-transform:capitalize;}
+        .status-pending   {background:rgba(250,204,21,.15);color:#facc15;}
+        .status-confirmed {background:rgba(96,165,250,.15);color:#60a5fa;}
+        .status-shipped   {background:rgba(192,132,252,.15);color:#c084fc;}
+        .status-delivered {background:rgba(74,222,128,.15);color:#4ade80;}
+        .status-cancelled {background:rgba(255,60,172,.15);color:var(--hot);}
+
+        .orders-empty{text-align:center;padding:80px 20px;background:var(--card);border:1px solid var(--border);border-radius:20px;}
+        .orders-empty .big{font-size:56px;margin-bottom:18px;}
+        .orders-empty h3{font-family:var(--fd);font-size:20px;font-weight:800;margin-bottom:8px;}
+        .orders-empty p{font-size:14px;color:var(--muted);margin-bottom:24px;}
+        .orders-empty a{display:inline-block;background:var(--neon);color:var(--ink);padding:12px 28px;border-radius:12px;text-decoration:none;font-family:var(--fd);font-weight:800;font-size:14px;transition:.2s;}
+        .orders-empty a:hover{background:#d8ff4a;}
+
+        .login-prompt{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;text-align:center;max-width:400px;margin:40px auto;}
+        .login-prompt h3{font-family:var(--fd);font-size:20px;font-weight:800;margin-bottom:8px;}
+        .login-prompt p{font-size:14px;color:var(--muted);margin-bottom:20px;}
+        .login-prompt a{display:inline-block;background:var(--neon);color:var(--ink);padding:12px 28px;border-radius:12px;text-decoration:none;font-family:var(--fd);font-weight:800;transition:.2s;}
+        .login-prompt a:hover{background:#d8ff4a;}
+
+        @media(max-width:600px){main{padding:20px 16px;}header{padding:0 16px;}}
+    </style>
 </head>
 <body>
+<header>
+    <span class="logo">⚡ ShopEasy</span>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="cart.html">Cart</a>
+        <a href="orders.html" class="active">My Orders</a>
+    </nav>
+</header>
+<main>
+    <h2 class="page-title">My Orders 📦</h2>
+    <div id="orders-root"></div>
+</main>
+<script>
+async function loadOrders() {
+    const root  = document.getElementById('orders-root');
+    const token = localStorage.getItem('token');
+    if (!token) {
+        root.innerHTML = `<div class="login-prompt"><h3>Please sign in</h3><p>You need to be logged in to view your orders.</p><a href="login.html">Sign in</a></div>`;
+        return;
+    }
+    root.innerHTML = '<p style="color:var(--muted);font-size:14px;">Loading your orders…</p>';
+    try {
+        const res = await fetch('/api/orders/my-orders',{headers:{'Authorization':'Bearer '+token}});
+        if(res.status===401){ localStorage.removeItem('token'); root.innerHTML=`<div class="login-prompt"><h3>Session expired</h3><p>Please sign in again.</p><a href="login.html">Sign in</a></div>`; return; }
+        const orders = await res.json();
+        renderOrders(orders);
+    } catch {
+        root.innerHTML='<p style="color:var(--hot);font-size:14px;">Could not load orders. Please try again.</p>';
+    }
+}
 
-    <header>
-        <h1 class="logo">🛒 ShopEasy</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="cart.html">Cart</a>
-            <a href="orders.html" class="active">My Orders</a>
-        </nav>
-    </header>
-
-    <main>
-        <h2 class="section-title">My Orders</h2>
-        <div id="orders-root"></div>
-    </main>
-
-    <style>
-        .order-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 20px 24px;
-            margin-bottom: 16px;
-        }
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-        .order-id {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 4px;
-        }
-        .order-products {
-            font-size: 14px;
-            color: #475569;
-            margin-bottom: 4px;
-        }
-        .order-date {
-            font-size: 13px;
-            color: #94a3b8;
-        }
-        .order-right {
-            text-align: right;
-        }
-        .order-amount {
-            font-size: 17px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-        .status-badge {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 3px 12px;
-            border-radius: 20px;
-            text-transform: capitalize;
-        }
-        .status-pending   { background: #fef9c3; color: #854d0e; }
-        .status-confirmed { background: #dbeafe; color: #1e40af; }
-        .status-shipped   { background: #ede9fe; color: #5b21b6; }
-        .status-delivered { background: #dcfce7; color: #166534; }
-        .status-cancelled { background: #fee2e2; color: #991b1b; }
-
-        .orders-empty {
-            text-align: center;
-            padding: 70px 20px;
-            color: #94a3b8;
-        }
-        .orders-empty .empty-icon {
-            font-size: 52px;
-            margin-bottom: 16px;
-        }
-        .orders-empty h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 8px;
-        }
-        .orders-empty p {
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-        .orders-empty a {
-            display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .login-prompt {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            margin: 40px auto;
-        }
-        .login-prompt h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .login-prompt p {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 20px;
-        }
-        .login-prompt a {
-            display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-    </style>
-
-    <script>
-        async function loadOrders() {
-            const root  = document.getElementById('orders-root');
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                root.innerHTML = `
-                    <div class="login-prompt">
-                        <h3>Please sign in</h3>
-                        <p>You need to be logged in to view your orders.</p>
-                        <a href="login.html">Sign in</a>
-                    </div>`;
-                return;
-            }
-
-            root.innerHTML = '<p style="color:#94a3b8; font-size:14px;">Loading your orders…</p>';
-
-            try {
-                const res = await fetch('/api/orders/my-orders', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-
-                if (res.status === 401) {
-                    localStorage.removeItem('token');
-                    root.innerHTML = `
-                        <div class="login-prompt">
-                            <h3>Session expired</h3>
-                            <p>Please sign in again to view your orders.</p>
-                            <a href="login.html">Sign in</a>
-                        </div>`;
-                    return;
-                }
-
-                const orders = await res.json();
-                renderOrders(orders);
-            } catch {
-                root.innerHTML = '<p style="color:#ef4444; font-size:14px;">Could not load orders. Please try again.</p>';
-            }
-        }
-
-        function renderOrders(orders) {
-            const root = document.getElementById('orders-root');
-
-            if (!orders.length) {
-                root.innerHTML = `
-                    <div class="orders-empty">
-                        <div class="empty-icon">📦</div>
-                        <h3>No orders yet</h3>
-                        <p>Your orders will appear here once you place one.</p>
-                        <a href="index.html">Start shopping</a>
-                    </div>`;
-                return;
-            }
-
-            root.innerHTML = '';
-
-            orders.forEach(order => {
-                const date = new Date(order.created_at).toLocaleDateString('en-IN', {
-                    day: 'numeric', month: 'short', year: 'numeric'
-                });
-
-                const card = document.createElement('div');
-                card.className = 'order-card';
-                card.innerHTML = `
-                    <div class="order-header">
-                        <div>
-                            <div class="order-id">Order #${order.order_id}</div>
-                            <div class="order-products">${order.products}</div>
-                            <div class="order-date">${date}</div>
-                        </div>
-                        <div class="order-right">
-                            <div class="order-amount">₹${parseFloat(order.total_amount).toLocaleString()}</div>
-                            <span class="status-badge status-${order.status}">${order.status}</span>
-                        </div>
-                    </div>
-                `;
-                root.appendChild(card);
-            });
-        }
-
-        loadOrders();
-    </script>
-
+function renderOrders(orders) {
+    const root = document.getElementById('orders-root');
+    if(!orders.length){
+        root.innerHTML=`<div class="orders-empty"><div class="big">📦</div><h3>No orders yet</h3><p>Your orders will appear here once you place one.</p><a href="index.html">Start shopping</a></div>`;
+        return;
+    }
+    root.innerHTML='';
+    orders.forEach(o=>{
+        const date=new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+        const card=document.createElement('div');
+        card.className='order-card';
+        card.innerHTML=`
+            <div class="order-head">
+                <div>
+                    <div class="order-id">Order #${o.order_id}</div>
+                    <div class="order-products">${o.products}</div>
+                    <div class="order-date">${date}</div>
+                </div>
+                <div class="order-right">
+                    <div class="order-amount">₹${parseFloat(o.total_amount).toLocaleString()}</div>
+                    <span class="status-badge status-${o.status}">${o.status}</span>
+                </div>
+            </div>`;
+        root.appendChild(card);
+    });
+}
+loadOrders();
+</script>
 </body>
 </html>

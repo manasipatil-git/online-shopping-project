@@ -1,0 +1,80 @@
+// routes/products.js  — fixed version
+const express = require('express');
+const router  = express.Router();
+const db      = require('../db');
+
+// GET /api/products  (with optional ?category=id&search=term)
+router.get('/', async (req, res) => {
+    const { category, search } = req.query;
+
+    let query = `
+        SELECT
+            p.product_id,
+            p.name,
+            p.description,
+            p.price,
+            p.stock_quantity,
+            p.image_url,
+            p.created_at,
+            c.name AS category_name,
+            ROUND(AVG(r.rating), 1) AS avg_rating,
+            COUNT(DISTINCT r.review_id)  AS review_count
+        FROM products p
+        LEFT JOIN categories c       ON p.category_id  = c.category_id
+        LEFT JOIN product_reviews r  ON p.product_id   = r.product_id
+        WHERE 1 = 1
+    `;
+
+    const params = [];
+
+    if (category) {
+        query += ' AND p.category_id = ?';
+        params.push(category);
+    }
+
+    if (search) {
+        query += ' AND p.name LIKE ?';
+        params.push(`%${search}%`);
+    }
+
+    // GROUP BY ensures one row per product (no duplicates from the JOIN)
+    query += ' GROUP BY p.product_id, c.name ORDER BY p.created_at DESC';
+
+    try {
+        const [rows] = await db.execute(query, params);
+        res.json(rows);
+    } catch (err) {
+        console.error('Products fetch error:', err);
+        res.status(500).json({ error: 'Could not load products' });
+    }
+});
+
+// GET /api/products/:id
+router.get('/:id', async (req, res) => {
+    try {
+        const [rows] = await db.execute(
+            `SELECT
+                p.*,
+                c.name AS category_name,
+                ROUND(AVG(r.rating), 1) AS avg_rating,
+                COUNT(r.review_id)      AS review_count
+             FROM products p
+             LEFT JOIN categories c      ON p.category_id = c.category_id
+             LEFT JOIN product_reviews r ON p.product_id  = r.product_id
+             WHERE p.product_id = ?
+             GROUP BY p.product_id`,
+            [req.params.id]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        res.json(rows[0]);
+    } catch (err) {
+        console.error('Product fetch error:', err);
+        res.status(500).json({ error: 'Could not load product' });
+    }
+});
+
+module.exports = router;
