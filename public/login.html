@@ -3,75 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ShopEasy</title>
+    <title>Login – ShopEasy</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Navbar -->
     <header>
         <h1 class="logo">🛒 ShopEasy</h1>
         <nav>
             <a href="index.html">Home</a>
-            <a href="register.html">Register</a>
         </nav>
     </header>
 
-    <!-- Login Container -->
-    <main class="center-container">
+    <div class="center-container">
         <div class="form-card">
-            <h2>Login</h2>
+            <h2>Welcome back</h2>
+            <p class="form-subtitle">Sign in to your account</p>
 
-            <form id="loginForm">
-                <input type="email" id="email" placeholder="Enter your email" required>
-                <input type="password" id="password" placeholder="Enter your password" required>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input id="email" class="form-input" type="email" placeholder="you@example.com" />
+                <div class="form-error-msg" id="email-err">Please enter a valid email.</div>
+            </div>
 
-                <button type="submit">Login</button>
-            </form>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input id="password" class="form-input" type="password" placeholder="••••••••" />
+                <div class="form-error-msg" id="pw-err">Password is required.</div>
+            </div>
 
-            <p class="form-footer">
-                Don't have an account? <a href="register.html">Register</a>
-            </p>
+            <div class="form-error-msg" id="api-err"
+                 style="margin-bottom:12px; font-size:13px; background:#fee2e2;
+                        padding:10px 14px; border-radius:8px; color:#991b1b;">
+            </div>
+
+            <button id="login-btn" onclick="login()">Sign in</button>
+
+            <div class="form-footer">
+                No account? <a href="register.html">Create one</a>
+            </div>
         </div>
-    </main>
+    </div>
 
     <script>
-        const STORAGE_KEY = "user";
+        async function login() {
+            const email = document.getElementById('email').value.trim();
+            const pw    = document.getElementById('password').value;
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+            // clear previous errors
+            document.querySelectorAll('.form-error-msg').forEach(e => e.style.display = 'none');
+            document.querySelectorAll('.form-input').forEach(e => e.classList.remove('error'));
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            let valid = true;
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                document.getElementById('email').classList.add('error');
+                document.getElementById('email-err').style.display = 'block';
+                valid = false;
+            }
+            if (!pw) {
+                document.getElementById('password').classList.add('error');
+                document.getElementById('pw-err').style.display = 'block';
+                valid = false;
+            }
+            if (!valid) return;
+
+            const btn = document.getElementById('login-btn');
+            btn.textContent = 'Signing in…';
+            btn.disabled = true;
 
             try {
-                const res = await fetch('/auth/login', {
+                const res  = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password: pw })
                 });
-
                 const data = await res.json();
 
-                if (res.ok) {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email }));
-                    alert("Login successful!");
-                    window.location.href = "index.html";
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = '/index.html';
                 } else {
-                    alert(data.message || "Login failed");
+                    const err = document.getElementById('api-err');
+                    err.textContent = 'Invalid credentials. Please try again.';
+                    err.style.display = 'block';
                 }
-
-            } catch (err) {
-                // ✅ Dummy login fallback
-                if (email === "test@test.com" && password === "1234") {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email }));
-                    alert("Logged in (dummy mode)");
-                    window.location.href = "index.html";
-                } else {
-                    alert("Invalid credentials");
-                }
+            } catch {
+                const err = document.getElementById('api-err');
+                err.textContent = 'Could not connect. Please try again.';
+                err.style.display = 'block';
             }
-        });
+
+            btn.textContent = 'Sign in';
+            btn.disabled = false;
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
     </script>
 
 </body>

@@ -21,60 +21,123 @@
     <main>
         <h2 class="section-title">Your Cart</h2>
         <div id="cart-list" class="product-grid"></div>
+
+        <!-- Total summary bar — hidden when cart is empty -->
+        <div id="cart-summary" style="display:none;">
+            <div class="summary-box">
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span class="summary-label">Items</span>
+                        <span id="summary-count" class="summary-value">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal</span>
+                        <span id="summary-subtotal" class="summary-value">₹0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">GST (18%)</span>
+                        <span id="summary-gst" class="summary-value">₹0</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row summary-total-row">
+                        <span>Total</span>
+                        <span id="summary-total">₹0</span>
+                    </div>
+                </div>
+                <button id="checkout-btn" onclick="goToCheckout()">
+                    Proceed to Checkout →
+                </button>
+            </div>
+        </div>
     </main>
 
-   <script>
-    function getCart() {
-        return JSON.parse(localStorage.getItem("cart")) || [];
-    }
-
-    function saveCart(cart) {
-        localStorage.setItem("cart", JSON.stringify(cart));
-    }
-
-    function loadCart() {
-        const items = getCart();
-        renderCart(items);
-    }
-
-    function renderCart(items) {
-        const container = document.getElementById('cart-list');
-        container.innerHTML = '';
-
-        if (items.length === 0) {
-            container.innerHTML = "<p class='empty'>Your cart is empty 🛒</p>";
-            return;
+    <script>
+        function getCart() {
+            return JSON.parse(localStorage.getItem("cart")) || [];
         }
 
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.classList.add('product-card');
+        function saveCart(cart) {
+            localStorage.setItem("cart", JSON.stringify(cart));
+        }
 
-            div.innerHTML = `
-                <h3>${item.name}</h3>
-                <p class="price">₹${item.price}</p>
-                <button class="remove-btn" onclick="removeFromCart(${item.id})">
-                    Remove
-                </button>
-            `;
+        function loadCart() {
+            renderCart(getCart());
+        }
 
-            container.appendChild(div);
-        });
-    }
+        function renderCart(items) {
+            const container = document.getElementById('cart-list');
+            const summary   = document.getElementById('cart-summary');
+            container.innerHTML = '';
 
-    function removeFromCart(productId) {
-        let cart = getCart();
+            if (items.length === 0) {
+                container.innerHTML = "<p class='empty'>Your cart is empty 🛒</p>";
+                summary.style.display = 'none';
+                return;
+            }
 
-        // remove item
-        cart = cart.filter(item => item.id !== productId);
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.classList.add('product-card');
 
-        saveCart(cart);
+                div.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p class="price">₹${item.price} each</p>
+                    <div class="qty-row">
+                        <button class="qty-btn" onclick="updateQty(${item.id}, -1)">−</button>
+                        <span style="font-size:15px; font-weight:600; min-width:20px; text-align:center;">
+                            ${item.qty}
+                        </span>
+                        <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                    </div>
+                    <p class="item-subtotal">
+                        Subtotal: ₹${item.price * item.qty}
+                    </p>
+                    <button class="remove-btn" onclick="removeFromCart(${item.id})">
+                        Remove
+                    </button>
+                `;
 
-        loadCart(); // refresh UI
-    }
+                container.appendChild(div);
+            });
 
-    loadCart();
-</script>
+            updateSummary(items);
+            summary.style.display = 'block';
+        }
+
+        function updateSummary(items) {
+            const itemCount = items.reduce((s, i) => s + i.qty, 0);
+            const subtotal  = items.reduce((s, i) => s + i.price * i.qty, 0);
+            const gst       = Math.round(subtotal * 0.18);
+            const total     = subtotal + gst;
+
+            document.getElementById('summary-count').textContent    = itemCount + (itemCount === 1 ? ' item' : ' items');
+            document.getElementById('summary-subtotal').textContent = '₹' + subtotal.toLocaleString();
+            document.getElementById('summary-gst').textContent      = '₹' + gst.toLocaleString();
+            document.getElementById('summary-total').textContent    = '₹' + total.toLocaleString();
+        }
+
+        function updateQty(productId, delta) {
+            let cart = getCart();
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            item.qty = Math.max(1, item.qty + delta);
+            saveCart(cart);
+            loadCart();
+        }
+
+        function removeFromCart(productId) {
+            let cart = getCart().filter(item => item.id !== productId);
+            saveCart(cart);
+            loadCart();
+        }
+
+        function goToCheckout() {
+            if (getCart().length === 0) return;
+            window.location.href = 'checkout.html';
+        }
+
+        loadCart();
+    </script>
 
 </body>
 </html>

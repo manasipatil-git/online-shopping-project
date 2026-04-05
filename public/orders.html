@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders – ShopEasy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1 class="logo">🛒 ShopEasy</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="cart.html">Cart</a>
+            <a href="orders.html" class="active">My Orders</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2 class="section-title">My Orders</h2>
+        <div id="orders-root"></div>
+    </main>
+
+    <style>
+        .order-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .order-id {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .order-products {
+            font-size: 14px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+        .order-date {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .order-right {
+            text-align: right;
+        }
+        .order-amount {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .status-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 12px;
+            border-radius: 20px;
+            text-transform: capitalize;
+        }
+        .status-pending   { background: #fef9c3; color: #854d0e; }
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-shipped   { background: #ede9fe; color: #5b21b6; }
+        .status-delivered { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        .orders-empty {
+            text-align: center;
+            padding: 70px 20px;
+            color: #94a3b8;
+        }
+        .orders-empty .empty-icon {
+            font-size: 52px;
+            margin-bottom: 16px;
+        }
+        .orders-empty h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .orders-empty p {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .orders-empty a {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .login-prompt {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            margin: 40px auto;
+        }
+        .login-prompt h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .login-prompt p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .login-prompt a {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+
+    <script>
+        async function loadOrders() {
+            const root  = document.getElementById('orders-root');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                root.innerHTML = `
+                    <div class="login-prompt">
+                        <h3>Please sign in</h3>
+                        <p>You need to be logged in to view your orders.</p>
+                        <a href="login.html">Sign in</a>
+                    </div>`;
+                return;
+            }
+
+            root.innerHTML = '<p style="color:#94a3b8; font-size:14px;">Loading your orders…</p>';
+
+            try {
+                const res = await fetch('/api/orders/my-orders', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.status === 401) {
+                    localStorage.removeItem('token');
+                    root.innerHTML = `
+                        <div class="login-prompt">
+                            <h3>Session expired</h3>
+                            <p>Please sign in again to view your orders.</p>
+                            <a href="login.html">Sign in</a>
+                        </div>`;
+                    return;
+                }
+
+                const orders = await res.json();
+                renderOrders(orders);
+            } catch {
+                root.innerHTML = '<p style="color:#ef4444; font-size:14px;">Could not load orders. Please try again.</p>';
+            }
+        }
+
+        function renderOrders(orders) {
+            const root = document.getElementById('orders-root');
+
+            if (!orders.length) {
+                root.innerHTML = `
+                    <div class="orders-empty">
+                        <div class="empty-icon">📦</div>
+                        <h3>No orders yet</h3>
+                        <p>Your orders will appear here once you place one.</p>
+                        <a href="index.html">Start shopping</a>
+                    </div>`;
+                return;
+            }
+
+            root.innerHTML = '';
+
+            orders.forEach(order => {
+                const date = new Date(order.created_at).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric'
+                });
+
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.innerHTML = `
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">Order #${order.order_id}</div>
+                            <div class="order-products">${order.products}</div>
+                            <div class="order-date">${date}</div>
+                        </div>
+                        <div class="order-right">
+                            <div class="order-amount">₹${parseFloat(order.total_amount).toLocaleString()}</div>
+                            <span class="status-badge status-${order.status}">${order.status}</span>
+                        </div>
+                    </div>
+                `;
+                root.appendChild(card);
+            });
+        }
+
+        loadOrders();
+    </script>
+
+</body>
+</html>

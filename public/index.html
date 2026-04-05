@@ -3,104 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Shopping</title>
+    <title>ShopEasy</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Navbar -->
-    <header>
-        <h1 class="logo">🛒 ShopEasy</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="login.html">Login</a>
-            <a href="cart.html">Cart</a>
-        </nav>
-    </header>
+<header>
+    <h1 class="logo">⚡ ShopEasy</h1>
+    <nav>
+        <a href="index.html" class="active">Home</a>
+        <a href="cart.html" id="cart-link">Cart <span class="cart-count" id="cart-count" style="display:none;">0</span></a>
+        <a href="login.html" id="auth-link">Login</a>
+    </nav>
+</header>
 
-    <!-- Main Content -->
-    <main>
-        <h2 class="section-title">Products</h2>
-        <div id="product-list" class="product-grid"></div>
-    </main>
+<!-- Hero Banner -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">New arrivals 2024</div>
+        <h1 class="hero-title">Latest Tech<br>Gadgets & More</h1>
+        <p class="hero-sub">Free delivery on orders above ₹999. Shop the best deals today.</p>
+        <a href="#products" class="hero-btn">Shop Now →</a>
+    </div>
+    <div class="hero-visual">
+        <div class="hero-emoji-grid">
+            <div class="hero-bubble b1">🎧</div>
+            <div class="hero-bubble b2">⌚</div>
+            <div class="hero-bubble b3">💻</div>
+            <div class="hero-bubble b4">📱</div>
+            <div class="hero-bubble b5">🔋</div>
+            <div class="hero-bubble b6">🖱️</div>
+        </div>
+    </div>
+</section>
 
-  <script>
+<!-- Category Pills -->
+<section class="categories-section">
+    <div class="categories-inner">
+        <button class="cat-pill active" onclick="filterCat('All', this)">All</button>
+        <button class="cat-pill" onclick="filterCat('Electronics', this)">💻 Electronics</button>
+        <button class="cat-pill" onclick="filterCat('Accessories', this)">🎒 Accessories</button>
+        <button class="cat-pill" onclick="filterCat('Clothing', this)">👕 Clothing</button>
+        <button class="cat-pill" onclick="filterCat('Books', this)">📚 Books</button>
+        <button class="cat-pill" onclick="filterCat('Home & Kitchen', this)">🍳 Home & Kitchen</button>
+    </div>
+</section>
+
+<!-- Products -->
+<main id="products">
+    <div class="section-header">
+        <h2 class="section-title">Featured Products</h2>
+        <span id="product-count" class="product-count"></span>
+    </div>
+    <div id="product-list" class="product-grid"></div>
+</main>
+
+<!-- Features strip -->
+<section class="features-strip">
+    <div class="feature-item">
+        <span class="feature-icon">🚚</span>
+        <div>
+            <div class="feature-title">Free Delivery</div>
+            <div class="feature-sub">On orders above ₹999</div>
+        </div>
+    </div>
+    <div class="feature-item">
+        <span class="feature-icon">↩️</span>
+        <div>
+            <div class="feature-title">Easy Returns</div>
+            <div class="feature-sub">7-day return policy</div>
+        </div>
+    </div>
+    <div class="feature-item">
+        <span class="feature-icon">🔒</span>
+        <div>
+            <div class="feature-title">Secure Payments</div>
+            <div class="feature-sub">UPI, Card, COD accepted</div>
+        </div>
+    </div>
+    <div class="feature-item">
+        <span class="feature-icon">⭐</span>
+        <div>
+            <div class="feature-title">Top Rated</div>
+            <div class="feature-sub">Curated quality products</div>
+        </div>
+    </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
     const STORAGE_KEY = "cart";
 
     const dummyProducts = [
-        { id: 1, name: "Wireless Mouse", price: 599 },
-        { id: 2, name: "Bluetooth Headphones", price: 1499 },
-        { id: 3, name: "Gaming Keyboard", price: 2499 },
-        { id: 4, name: "Smart Watch", price: 1999 },
-        { id: 5, name: "USB-C Charger", price: 799 },
-        { id: 6, name: "Laptop Stand", price: 999 },
-        { id: 7, name: "Phone Case", price: 299 },
-        { id: 8, name: "Power Bank", price: 1299 }
+        { id: 1,  name: "Wireless Mouse",       price: 599,  originalPrice: 799,  emoji: "🖱️",  category: "Electronics", rating: 4.5, reviews: 128, popular: false },
+        { id: 2,  name: "Bluetooth Headphones", price: 1499, originalPrice: 1999, emoji: "🎧",  category: "Electronics", rating: 4.7, reviews: 940, popular: true  },
+        { id: 3,  name: "Gaming Keyboard",      price: 2499, originalPrice: null, emoji: "⌨️",  category: "Electronics", rating: 4.3, reviews: 67,  popular: false },
+        { id: 4,  name: "Smart Watch",          price: 1999, originalPrice: 2499, emoji: "⌚",  category: "Electronics", rating: 4.6, reviews: 203, popular: true  },
+        { id: 5,  name: "USB-C Charger",        price: 799,  originalPrice: null, emoji: "🔌",  category: "Electronics", rating: 4.2, reviews: 312, popular: false },
+        { id: 6,  name: "Laptop Stand",         price: 999,  originalPrice: 1299, emoji: "💻",  category: "Electronics", rating: 4.4, reviews: 55,  popular: false },
+        { id: 7,  name: "Phone Case",           price: 299,  originalPrice: null, emoji: "📱",  category: "Accessories", rating: 4.1, reviews: 445, popular: false },
+        { id: 8,  name: "Power Bank",           price: 1299, originalPrice: 1599, emoji: "🔋",  category: "Electronics", rating: 4.5, reviews: 189, popular: true  }
     ];
 
+    let allProducts   = [];
+    let activeCategory = "All";
+
     async function loadProducts() {
-        let products = [];
-
         try {
-            const res = await fetch('/products');
+            const res = await fetch('/api/products');
             if (!res.ok) throw new Error();
-
-            products = await res.json();
-        } catch (err) {
-            console.warn("Using dummy products...");
-            products = dummyProducts;
+            const data = await res.json();
+            // deduplicate by id in case API and dummy both load
+            const seen = new Set();
+            allProducts = data
+                .map(p => ({
+                    ...p,
+                    id:       p.product_id || p.id,
+                    emoji:    getEmoji(p.category_name || p.category),
+                    category: p.category_name || p.category || 'Electronics',
+                    rating:   p.avg_rating || 4.2,
+                    reviews:  p.review_count || 0,
+                    popular:  false
+                }))
+                .filter(p => { if (seen.has(p.id)) return false; seen.add(p.id); return true; });
+        } catch {
+            allProducts = dummyProducts;
         }
-
-        renderProducts(products);
+        renderProducts();
+        updateCartCount();
+        updateAuthLink();
     }
 
-    function renderProducts(products) {
+    function getEmoji(category) {
+        const map = {
+            "Electronics":    "💻",
+            "Clothing":       "👕",
+            "Books":          "📚",
+            "Home & Kitchen": "🍳",
+            "Accessories":    "🎒"
+        };
+        return map[category] || "📦";
+    }
+
+    function getCatClass(category) {
+        const map = {
+            "Electronics":    "cat-electronics",
+            "Clothing":       "cat-clothing",
+            "Books":          "cat-books",
+            "Home & Kitchen": "cat-kitchen",
+            "Accessories":    "cat-accessories"
+        };
+        return map[category] || "cat-default";
+    }
+
+    function getCatAccent(category) {
+        const map = {
+            "Electronics":    "#3b82f6",
+            "Clothing":       "#a855f7",
+            "Books":          "#f97316",
+            "Home & Kitchen": "#22c55e",
+            "Accessories":    "#eab308"
+        };
+        return map[category] || "#64748b";
+    }
+
+    function stars(rating) {
+        const full  = Math.floor(rating);
+        const empty = 5 - full;
+        return '★'.repeat(full) + '☆'.repeat(empty);
+    }
+
+    function filterCat(cat, btn) {
+        activeCategory = cat;
+        document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderProducts();
+    }
+
+    function renderProducts() {
         const container = document.getElementById('product-list');
+        const countEl   = document.getElementById('product-count');
         container.innerHTML = '';
 
-        products.forEach(product => {
-            const div = document.createElement('div');
-            div.classList.add('product-card');
+        const filtered = activeCategory === 'All'
+            ? allProducts
+            : allProducts.filter(p => p.category === activeCategory);
+
+        countEl.textContent = filtered.length + ' products';
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#94a3b8;font-size:16px;">No products in this category yet.</div>`;
+            return;
+        }
+
+        filtered.forEach((product) => {
+            // find index in allProducts for qty/cart functions
+            const index = allProducts.indexOf(product);
+            const div   = document.createElement('div');
+            div.className = 'product-card';
+
+            const catClass  = getCatClass(product.category);
+            const accent    = getCatAccent(product.category);
+
+            const discount = product.originalPrice
+                ? Math.round((1 - product.price / product.originalPrice) * 100)
+                : 0;
+
+            const discountBadge = discount > 0
+                ? `<div class="discount-badge">${discount}% OFF</div>`
+                : '';
+
+            const popularBadge = product.popular
+                ? `<div class="popular-badge-card">🔥 Popular</div>`
+                : '';
+
+            const priceHtml = product.originalPrice
+                ? `<div class="price-row">
+                       <span class="price-sale">₹${Number(product.price).toLocaleString()}</span>
+                       <span class="price-original">₹${Number(product.originalPrice).toLocaleString()}</span>
+                   </div>`
+                : `<div class="price-row"><span class="price-sale">₹${Number(product.price).toLocaleString()}</span></div>`;
 
             div.innerHTML = `
-                <h3>${product.name}</h3>
-                <p class="price">₹${product.price}</p>
-                <button onclick="addToCart(${product.id})">
-                    Add to Cart
-                </button>
+                <div class="product-img ${catClass}">
+                    ${discountBadge}
+                    <div class="product-emoji">${product.emoji || '📦'}</div>
+                    <div class="product-img-bg" style="background:${accent}15;"></div>
+                </div>
+                <div class="product-body">
+                    <div class="product-top-row">
+                        <span class="product-category-tag" style="color:${accent};background:${accent}15;">${product.category}</span>
+                        ${popularBadge}
+                    </div>
+                    <h3 class="product-name">${product.name}</h3>
+                    <div class="product-rating">
+                        <span class="stars">${stars(product.rating || 4)}</span>
+                        <span class="review-count">${product.rating || 4} (${Number(product.reviews || 0).toLocaleString()})</span>
+                    </div>
+                    ${priceHtml}
+                    <div class="qty-row">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1)">−</button>
+                        <input class="qty-input" id="qty-idx-${index}" type="number" value="1" min="1" max="99"/>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                    <button class="add-cart-btn" onclick="addToCart(${index})">
+                        Add to Cart
+                    </button>
+                </div>
             `;
 
             container.appendChild(div);
         });
     }
 
-    // ✅ FIXED FUNCTION
-    function addToCart(productId) {
-        const product = dummyProducts.find(p => p.id === productId);
+    function changeQty(index, delta) {
+        const input = document.getElementById('qty-idx-' + index);
+        if (!input) return;
+        input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    }
 
-        if (!product) {
-            alert("Product not found");
-            return;
-        }
+    function addToCart(index) {
+        const product = allProducts[index];
+        if (!product) return;
+
+        const input = document.getElementById('qty-idx-' + index);
+        const qty   = Math.max(1, parseInt(input?.value) || 1);
 
         let cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const existing = cart.find(i => i.id === product.id);
 
-        // ❌ Prevent duplicates
-        const exists = cart.some(item => item.id === productId);
-
-        if (exists) {
-            alert("Already in cart");
-            return;
+        if (existing) {
+            existing.qty += qty;
+        } else {
+            cart.push({
+                id:       product.id,
+                name:     product.name,
+                price:    product.price,
+                originalPrice: product.originalPrice || null,
+                emoji:    product.emoji,
+                category: product.category || '',
+                qty
+            });
         }
 
-        cart.push(product);
-
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+        if (input) input.value = 1;
+        updateCartCount();
+        showToast('Added ' + qty + '× ' + product.name + ' to cart 🛒');
+    }
 
-        alert("🛒 Added to cart");
+    function updateCartCount() {
+        const cart  = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const total = cart.reduce((s, i) => s + i.qty, 0);
+        const badge = document.getElementById('cart-count');
+        if (badge) {
+            badge.textContent  = total;
+            badge.style.display = total > 0 ? 'inline-flex' : 'none';
+        }
+    }
+
+    function updateAuthLink() {
+        const link = document.getElementById('auth-link');
+        if (localStorage.getItem('token')) {
+            link.textContent = 'Logout';
+            link.href = '#';
+            link.onclick = (e) => {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                location.reload();
+            };
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._t);
+        t._t = setTimeout(() => t.classList.remove('show'), 2500);
     }
 
     loadProducts();
 </script>
+
 </body>
 </html>
